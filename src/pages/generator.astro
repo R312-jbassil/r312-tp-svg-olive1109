@@ -1,0 +1,30 @@
+---
+import '../styles/global.css';
+---
+<nav class="navbar bg-base-100 px-8 py-4 shadow mb-4 rounded-b-xl">
+	<div class="flex-1">
+		<a href="/" class="btn btn-ghost text-xl">Home</a>
+		<a href="/generator" class="btn btn-ghost text-xl">Generator</a>
+		<a href="/library" class="btn btn-ghost text-xl">Library</a>
+	</div>
+</nav>
+<main class="flex flex-col items-center justify-center min-h-[80vh] w-full">
+	<div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+		<!-- Aperçu SVG -->
+		<div class="bg-gradient-to-b from-base-200 to-base-100 rounded-xl flex items-center justify-center min-h-[400px] border-4 border-purple-400">
+			<div id="svg-container" class="flex items-center justify-center w-full h-full"></div>
+		</div>
+		<!-- Code SVG -->
+		<div class="bg-[#3b2179] rounded-xl p-6 text-white min-h-[400px] overflow-auto flex flex-col">
+			<div class="flex items-center mb-2">
+				<span class="text-lg font-bold">&lt;/&gt;</span>
+			</div>
+			<pre id="svg-output" class="bg-transparent text-xs whitespace-pre-wrap flex-1"></pre>
+		</div>
+	</div>
+	<!-- Zone de saisie du prompt -->
+	<form class="w-full max-w-6xl flex gap-4 items-center mt-2" onsubmit="event.preventDefault();">
+		<input id="user-prompt" type="text" class="input input-bordered flex-1 text-lg" placeholder="car" />
+		<button id="generate-button" type="button" class="btn btn-primary text-lg px-8">Generate</button>
+	</form>
+</main>

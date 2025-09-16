@@ -2,33 +2,67 @@
 import Layout from '../layouts/Layout.astro';
 ---
 <Layout>
+    <nav class="navbar bg-base-100 px-8 py-4 shadow mb-4 rounded-b-xl">
+        <div class="flex-1">
+            <a href="/" class="btn btn-ghost text-xl">Home</a>
+            <a href="/generator" class="btn btn-ghost text-xl">Generator</a>
+            <!-- <a href="/library" class="btn btn-ghost text-xl">Library</a> -->
+        </div>
+    </nav>
+    <main class="flex flex-col items-center justify-center min-h-[80vh] w-full">
+        <div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+            <!-- Aperçu SVG -->
+            <div class="bg-gradient-to-b from-base-200 to-base-100 rounded-xl flex items-center justify-center min-h-[400px] border-4 border-purple-400">
+                <div id="svg-container" class="flex items-center justify-center w-full h-full"></div>
+            </div>
+            <!-- Code SVG -->
+            <div class="bg-[#3b2179] rounded-xl p-6 text-white min-h-[400px] overflow-auto flex flex-col">
+                <div class="flex items-center mb-2">
+                    <span class="text-lg font-bold">&lt;/&gt;</span>
+                </div>
+                <pre id="svg-output" class="bg-transparent text-xs whitespace-pre-wrap flex-1"></pre>
+            </div>
+        </div>
+        <!-- Zone de saisie du prompt -->
+        <form class="w-full max-w-6xl flex gap-4 items-center mt-2" onsubmit="event.preventDefault();">
+            <input id="user-prompt" type="text" class="input input-bordered flex-1 text-lg" placeholder="prompter" />
+            <button id="generate-button" type="button" class="btn btn-primary text-lg px-8">Generate</button>
+        </form>
+    </main>
+    <script>
+        //@ts-nocheck
+        
+        async function generateSVG(prompt) {
+            console.log('Generating SVG for prompt:', prompt);
+            const res = await fetch('/api/generateSVG', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt }),
+            });
+            const data = await res.json();
+            return data.svg;
+        }
 
+        async function handleSubmit() {
+            let prompt = "";
+            let svgCode = "";
+            const promptElement = document.getElementById("user-prompt");
+            prompt = promptElement ? promptElement.value : "";
+            console.log('submitted: ', prompt); // message affiché sur votre console d'inspecteur dans le navigateur
+            const svgContainer = document.getElementById("svg-container");
+            let svgOutput = document.getElementById("svg-output");
+            svgContainer.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
+            generateButton.disabled = true;
+            svgCode = await generateSVG(prompt);
+            console.log('svgCode: ', svgCode);
+            svgOutput.textContent = svgCode;
+            svgContainer.innerHTML = svgCode;
+            generateButton.disabled = false;
 
-<nav class="navbar bg-base-100 px-8 py-4 shadow mb-4 rounded-b-xl">
-	<div class="flex-1">
-		<a href="/" class="btn btn-ghost text-xl">Home</a>
-		<a href="/generator" class="btn btn-ghost text-xl">Generator</a>
-		<!-- <a href="/library" class="btn btn-ghost text-xl">Library</a> -->
-	</div>
-</nav>
-<main class="flex flex-col items-center justify-center min-h-[80vh] w-full">
-	<div class="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-		<!-- Aperçu SVG -->
-		<div class="bg-gradient-to-b from-base-200 to-base-100 rounded-xl flex items-center justify-center min-h-[400px] border-4 border-purple-400">
-			<div id="svg-container" class="flex items-center justify-center w-full h-full"></div>
-		</div>
-		<!-- Code SVG -->
-		<div class="bg-[#3b2179] rounded-xl p-6 text-white min-h-[400px] overflow-auto flex flex-col">
-			<div class="flex items-center mb-2">
-				<span class="text-lg font-bold">&lt;/&gt;</span>
-			</div>
-			<pre id="svg-output" class="bg-transparent text-xs whitespace-pre-wrap flex-1"></pre>
-		</div>
-	</div>
-	<!-- Zone de saisie du prompt -->
-	<form class="w-full max-w-6xl flex gap-4 items-center mt-2" onsubmit="event.preventDefault();">
-		<input id="user-prompt" type="text" class="input input-bordered flex-1 text-lg" placeholder="prompter" />
-		<button id="generate-button" type="button" class="btn btn-primary text-lg px-8">Generate</button>
-	</form>
-</main>
+        }
+        const generateButton = document.getElementById("generate-button");
+        if (generateButton) {
+            generateButton.addEventListener("click", handleSubmit);
+        }
+    </script>
 </Layout>

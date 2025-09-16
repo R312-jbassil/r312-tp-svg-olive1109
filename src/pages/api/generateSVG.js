@@ -18,7 +18,7 @@ export const POST = async ({ request }) => {
     
     // ................
     const chatCompletion = await client.chat.completions.create({
-    model: NOM_MODEL,
+    model: "Qwen/Qwen3-Next-80B-A3B-Instruct:novita",
     messages: [
       {
           role: "system", 

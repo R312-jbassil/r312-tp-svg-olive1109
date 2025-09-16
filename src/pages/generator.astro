@@ -1,11 +1,14 @@
 ---
-import '../styles/global.css';
+import Layout from '../layouts/Layout.astro';
 ---
+<Layout>
+
+
 <nav class="navbar bg-base-100 px-8 py-4 shadow mb-4 rounded-b-xl">
 	<div class="flex-1">
 		<a href="/" class="btn btn-ghost text-xl">Home</a>
 		<a href="/generator" class="btn btn-ghost text-xl">Generator</a>
-		<a href="/library" class="btn btn-ghost text-xl">Library</a>
+		<!-- <a href="/library" class="btn btn-ghost text-xl">Library</a> -->
 	</div>
 </nav>
 <main class="flex flex-col items-center justify-center min-h-[80vh] w-full">
@@ -24,7 +27,8 @@ import '../styles/global.css';
 	</div>
 	<!-- Zone de saisie du prompt -->
 	<form class="w-full max-w-6xl flex gap-4 items-center mt-2" onsubmit="event.preventDefault();">
-		<input id="user-prompt" type="text" class="input input-bordered flex-1 text-lg" placeholder="car" />
+		<input id="user-prompt" type="text" class="input input-bordered flex-1 text-lg" placeholder="prompter" />
 		<button id="generate-button" type="button" class="btn btn-primary text-lg px-8">Generate</button>
 	</form>
 </main>
+</Layout>

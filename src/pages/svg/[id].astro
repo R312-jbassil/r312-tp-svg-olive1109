@@ -11,30 +11,42 @@ const pb = new PocketBase('http://127.0.0.1:8090');
 // Récupère le SVG par son id
 let svgData = null;
 try {
-  svgData = await pb.collection('svg').getOne(id);
+  if (typeof id === "string") {
+    svgData = await pb.collection('svg').getOne(id);
+  } else {
+    svgData = null;
+  }
 } catch (e) {
   svgData = null;
 }
 ---
 
 <Layout>
-    <html lang="fr">
+  <html lang="fr">
     <head>
         <title>Détail SVG</title>
         <meta charset="UTF-8" />
     </head>
+
     <body class="bg-base-200 min-h-screen flex flex-col items-center justify-center p-8">
-        {svgData ? (
-        <div class="max-w-2xl w-full bg-base-100 rounded-xl shadow-xl p-8 flex flex-col gap-6 items-center">
-            <h1 class="text-2xl font-bold mb-2">{svgData.name}</h1>
-            <div class="border border-base-300 rounded-lg p-4 bg-white flex justify-center items-center">
-            <div innerHTML={svgData.code}></div>
-            </div>
-            <pre class="bg-base-200 p-4 rounded text-xs overflow-x-auto w-full">{svgData.code}</pre>
+      <nav class="navbar bg-base-100 px-8 py-4 shadow mb-4 rounded-b-xl">
+        <div class="flex-1">
+            <a href="/" class="btn btn-ghost text-xl">Home</a>
+            <a href="/generator" class="btn btn-ghost text-xl">Generator</a>
+            <a href="/library" class="btn btn-ghost text-xl">Library</a>
         </div>
-        ) : (
-        <div class="text-red-500 text-xl">SVG introuvable</div>
-        )}
+      </nav>
+      {svgData ? (
+      <div class="max-w-2xl w-full bg-base-100 rounded-xl shadow-xl p-8 flex flex-col gap-6 items-center">
+          <h1 class="text-2xl font-bold mb-2">{svgData.name}</h1>
+          <div class="border border-base-300 rounded-lg p-4 bg-white flex justify-center items-center">
+          <div set:html={svgData.code}></div>
+          </div>
+          <pre class="bg-base-200 p-4 rounded text-xs overflow-x-auto w-full">{svgData.code}</pre>
+      </div>
+      ) : (
+      <div class="text-red-500 text-xl">SVG introuvable</div>
+      )}
     </body>
-    </html>
+  </html>
 </Layout>

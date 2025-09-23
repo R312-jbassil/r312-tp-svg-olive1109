@@ -3,9 +3,16 @@ import Layout from '../layouts/Layout.astro';
 import PocketBase from 'pocketbase';
 
 const pb = new PocketBase('http://127.0.0.1:8090');
-let svgList = [];
+type SvgItem = {
+  id: string;
+  code: string;
+  name: string;
+  // add other fields if needed
+};
+
+let svgList: SvgItem[] = [];
 try {
-  svgList = await pb.collection('svg').getFullList();
+  svgList = await pb.collection('svg').getFullList() as SvgItem[];
 } catch (e) {
   svgList = [];
 }
@@ -26,7 +33,7 @@ try {
             {svgList.map(svg => (
                 <a href={`/svg/${svg.id}`} class="card bg-base-100 shadow-xl p-6 flex flex-col items-center hover:scale-105 transition-transform">
                     <div class="w-full flex justify-center items-center min-h-[150px] mb-4">
-                        <div innerHTML={svg.code}></div>
+                        <div set:html={svg.code}></div>
                     </div>
                     <div class="font-semibold text-lg text-center">{svg.name}</div>
                 </a>

@@ -40,6 +40,7 @@ import PocketBase from 'pocketbase';
     <script>
         //@ts-nocheck
         let promptList = [];
+        let svgCodeContainer = document.getElementById("svg-output");
         async function generateSVG(prompt) {
             console.log('Generating SVG for prompt:', prompt);
             const res = await fetch('/api/generateSVG', {
@@ -80,7 +81,7 @@ import PocketBase from 'pocketbase';
                 const res = await fetch("/api/saveSVG", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name, code: svgCode }),
+                    body: JSON.stringify({name: name, code: svgCode.innerHTML, chat_history: promptList }),
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -99,15 +100,20 @@ import PocketBase from 'pocketbase';
 
         document.getElementById("save-svg").addEventListener("click", async () => {
             const name = document.getElementById("svg-name").value;
-            const code = document.getElementById("svg-output").textContent;
+            const code = document.getElementById("svg-output")?.textContent;
             if (!name || !code) {
                 alert("Veuillez entrer un nom et générer un SVG avant d'enregistrer.");
                 return;
             }
+             const params = {
+                name: name,
+                code:  code || "<svg></svg>",
+                chat_history: JSON.stringify(promptList),
+            }; 
             const res = await fetch("/api/saveSVG", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name, code }),
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(params),
             });
             const data = await res.json();
             if (data.success) {

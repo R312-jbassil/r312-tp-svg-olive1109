@@ -1,52 +1,136 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PocketBase from 'pocketbase';
+import pb from '../../utils/pb';
+import { Collections } from '../../utils/pocketbase-types';
 
-// Récupère l'id depuis l'URL
 const { id } = Astro.params;
 
-// Connexion à PocketBase
-const pb = new PocketBase('http://127.0.0.1:8090');
-
-// Récupère le SVG par son id
 let svgData = null;
 try {
-  if (typeof id === "string") {
-    svgData = await pb.collection('svg').getOne(id);
-  } else {
-    svgData = null;
-  }
+  svgData = await pb.collection(Collections.SVG).getOne(id);
 } catch (e) {
   svgData = null;
 }
+
 ---
 
 <Layout>
-  <html lang="fr">
-    <head>
-        <title>Détail SVG</title>
-        <meta charset="UTF-8" />
-    </head>
-
-    <body class="bg-base-200 min-h-screen flex flex-col items-center justify-center p-8">
-      <nav class="navbar bg-base-100 px-8 py-4 shadow mb-4 rounded-b-xl">
-        <div class="flex-1">
-            <a href="/" class="btn btn-ghost text-xl">Home</a>
-            <a href="/generator" class="btn btn-ghost text-xl">Generator</a>
-            <a href="/library" class="btn btn-ghost text-xl">Library</a>
-        </div>
-      </nav>
-      {svgData ? (
-      <div class="max-w-2xl w-full bg-base-100 rounded-xl shadow-xl p-8 flex flex-col gap-6 items-center">
-          <h1 class="text-2xl font-bold mb-2">{svgData.name}</h1>
-          <div class="border border-base-300 rounded-lg p-4 bg-white flex justify-center items-center">
-          <div set:html={svgData.code}></div>
-          </div>
-          <pre class="bg-base-200 p-4 rounded text-xs overflow-x-auto w-full">{svgData.code}</pre>
+  <nav class="navbar bg-base-100 px-8 py-4 shadow mb-4 rounded-b-xl">
+    <div class="flex-1">
+        <a href="/" class="btn btn-ghost text-xl">Home</a>
+        <a href="/generator" class="btn btn-ghost text-xl">Generator</a>
+        <a href="/library" class="btn btn-ghost text-xl">Library</a>
+    </div>
+  </nav>
+  <main class="flex flex-col items-center justify-center min-h-screen p-8">
+    <div class="max-w-2xl w-full bg-base-100 rounded-xl shadow-xl p-8 flex flex-col gap-6 items-center">
+      <h1 class="text-2xl font-bold mb-2">{svgData?.name}</h1>
+      <div id="svg-preview" class="border border-base-300 rounded-lg p-4 bg-white flex justify-center items-center mb-8">
+        <div set:html={svgData?.code}></div>
       </div>
-      ) : (
-      <div class="text-red-500 text-xl">SVG introuvable</div>
-      )}
-    </body>
-  </html>
+      <div id="chat-history" class="flex flex-col gap-4 w-full mb-20 overflow-y-auto flex-grow">
+        {
+          (Array.isArray(svgData?.chat_history) && svgData.chat_history.length > 0) ? (
+            svgData.chat_history.map((msg) => (
+              <div class={`chat ${msg.role === 'user' ? 'chat-start' : 'chat-end'}`}>
+                <div class={`chat-bubble ${msg.role === 'user' ? 'bg-primary text-primary-content' : 'bg-secondary text-secondary-content'}`}>
+                  <pre>{msg.content}</pre>
+                </div>
+                <div class="chat-footer opacity-60 text-xs mt-1">{msg.role}</div>
+              </div>
+            ))
+          ) : (
+            <span class="text-error">Aucun historique de chat.</span>
+          )
+        }
+        
+      </div>
+      <form id="input-prompt-form" class="flex flex-col gap-2 w-full bg-base-300 p-4" autocomplete="off">
+        <input type="hidden" name="history" value={JSON.stringify(svgData?.chat_history)} />
+        <input type="hidden" name="id" value={svgData?.id} />
+        <div class="flex items-center gap-2">
+          <input id="prompt-input" name="editPrompt" type="text" class="input flex-grow" placeholder="Enter a prompt to edit the SVG..." />
+          <button class="btn btn-primary" type="submit">Edit</button>
+        </div>
+      </form>
+    </div>
+    <script>
+      //@ts-nocheck
+      const form = document.getElementById('input-prompt-form');
+      const svgPreview = document.getElementById('svg-preview');
+      const chatHistoryDiv = document.getElementById('chat-history');
+
+      async function generateSVG(messages) {
+        const res = await fetch('/api/generateSVG', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages }),
+        });
+        const data = await res.json();
+        return data.svg.content || "";
+      }
+
+      async function update(updatedData) {
+        const response = await fetch("/api/updateSVG", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData),
+        });
+        return await response.json();
+      }
+
+      form?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        let history = JSON.parse(formData.get('history'));
+        let prompt = {
+          role: 'user',
+          content: formData.get('editPrompt')
+        };
+        history.push(prompt);
+
+        svgPreview.innerHTML = `<span class="loading loading-ring loading-xl"></span>`;
+        chatHistoryDiv.innerHTML += `
+          <div class="chat chat-start">
+            <div class="chat-bubble bg-primary text-primary-content">
+              <pre>${prompt.content}</pre>
+            </div>
+            <div class="chat-footer opacity-60 text-xs mt-1">user</div>
+          </div>
+        `;
+
+        let aiResponse = await generateSVG(history);
+        history.push({ role: 'assistant', content: aiResponse });
+
+        // Met à jour le SVG affiché
+        svgPreview.innerHTML = aiResponse;
+
+        // Ajoute la réponse à l'historique du chat
+        chatHistoryDiv.innerHTML += `
+          <div class="chat chat-end">
+            <div class="chat-bubble bg-secondary text-secondary-content">
+              <pre>${aiResponse}</pre>
+            </div>
+            <div class="chat-footer opacity-60 text-xs mt-1">assistant</div>
+          </div>
+        `;
+
+        // Met à jour dans PocketBase
+        const result = await update({
+          id: formData.get("id"),
+          code_svg: aiResponse,
+          chat_history: JSON.stringify([
+            { role: "assistant", content: "Bienvenue, posez votre première question !" }
+          ]),
+        });
+        if (result.success) {
+          alert("SVG updated successfully");
+        } else {
+          alert("Failed to update SVG");
+        }
+
+        form.reset();
+      });
+    </script>
+  </main>
 </Layout>

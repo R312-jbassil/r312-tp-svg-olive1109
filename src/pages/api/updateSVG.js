@@ -1,12 +1,14 @@
 import pb from '../../utils/pb';
 import { Collections } from '../../utils/pocketbase-types';
 
-export const POST = async ({ request }) => {
-    const data = await request.json();
+export async function POST({ request }) {
+    const { id, code_svg, chat_history } = await request.json();
     try {
-        // Remplace 'svg' par le nom exact de ta collection PocketBase
-        const record = await pb.collection(Collections.SVG).create(data);
-        return new Response(JSON.stringify({ success: true, id: record.id }), {
+        await pb.collection(Collections.SVG_History).update(id, {
+            code_svg,
+            chat_history,
+        });
+        return new Response(JSON.stringify({ success: true }), {
             headers: { "Content-Type": "application/json" },
         });
     } catch (error) {
@@ -15,4 +17,4 @@ export const POST = async ({ request }) => {
             status: 500,
         });
     }
-};
+}

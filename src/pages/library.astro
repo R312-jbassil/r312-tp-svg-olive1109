@@ -1,18 +1,11 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import PocketBase from 'pocketbase';
+import pb from '../utils/pb';
+import { Collections } from '../utils/pocketbase-types';
 
-const pb = new PocketBase('http://127.0.0.1:8090');
-type SvgItem = {
-  id: string;
-  code: string;
-  name: string;
-  // add other fields if needed
-};
-
-let svgList: SvgItem[] = [];
+let svgList = [];
 try {
-  svgList = await pb.collection('svg').getFullList() as SvgItem[];
+  svgList = await pb.collection(Collections.SVG).getFullList() as SvgItem[];
 } catch (e) {
   svgList = [];
 }

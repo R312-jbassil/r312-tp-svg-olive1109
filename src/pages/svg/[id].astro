@@ -7,6 +7,9 @@ const { id } = Astro.params;
 
 let svgData = null;
 try {
+  if (typeof id !== "string") {
+    throw new Error("Invalid SVG id");
+  }
   svgData = await pb.collection(Collections.SVG).getOne(id);
 } catch (e) {
   svgData = null;

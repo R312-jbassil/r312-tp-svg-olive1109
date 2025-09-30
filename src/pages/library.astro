@@ -3,9 +3,9 @@ import Layout from '../layouts/Layout.astro';
 import pb from '../utils/pb';
 import { Collections } from '../utils/pocketbase-types';
 
-let svgList = [];
+let svgList: Collections.SVG[] = [];
 try {
-  svgList = await pb.collection(Collections.SVG).getFullList() as SvgItem[];
+  svgList = await pb.collection(Collections.SVG).getFullList() as Collections.SVG[];
 } catch (e) {
   svgList = [];
 }
@@ -24,7 +24,7 @@ try {
         <p class="mb-6 text-lg">Tous tes SVG sauvegardés</p>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-6xl">
             {svgList.map(svg => (
-                <a href={`/svg/${svg.id}`} class="card bg-base-100 shadow-xl p-6 flex flex-col items-center hover:scale-105 transition-transform">
+                <a href={`/svg/${svg._id}`} class="card bg-base-100 shadow-xl p-6 flex flex-col items-center hover:scale-105 transition-transform">
                     <div class="w-full flex justify-center items-center min-h-[150px] mb-4">
                         <div set:html={svg.code}></div>
                     </div>

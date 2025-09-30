@@ -74,8 +74,8 @@ import PocketBase from 'pocketbase';
             svgContainer.innerHTML = svgCode.content;
             generateButton.disabled = false;
 
-            // Enregistrement automatique du SVG
-            const name = document.getElementById("svg-name").value;
+        // Enregistrement automatique du SVG
+        const name = document.getElementById("svg-name").value;
             if (name && svgCode) {
                 const res = await fetch("/api/saveSVG", {
                     method: "POST",
@@ -90,6 +90,8 @@ import PocketBase from 'pocketbase';
                 }
             }
         }
+
+        
         const generateButton = document.getElementById("generate-button");
         if (generateButton) {
             generateButton.addEventListener("click", handleSubmit);

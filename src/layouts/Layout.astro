@@ -1,5 +1,11 @@
 ---
 import "../styles/global.css";
+// Cast Astro.locals to any because middleware injects `user`
+const locals = /** @type {any} */ (Astro.locals);
+// @ts-ignore
+const user = locals?.user;
+// compute a simple avatar URL (DiceBear initials) when we have an email
+const avatarUrl = user && user.email ? `https://avatars.dicebear.com/api/initials/${encodeURIComponent(user.email)}.svg` : null;
 ---
 <!doctype html>
 <html lang="en" data-theme="light" class="h-full">
@@ -11,10 +17,40 @@ import "../styles/global.css";
 		<title>Astro Basics</title>
 	</head>
 	<body class="h-full">
+		<header class="w-full">
+			<nav class="navbar bg-base-200 px-4">
+				<div class="flex-1">
+					<a href="/" class="btn btn-ghost normal-case text-xl">SVG Generator</a>
+				</div>
+				<div class="flex-none">
+					{user ? (
+						<div class="dropdown dropdown-end">
+							<label tabindex="0" class="btn btn-ghost btn-circle avatar">
+								<div class="w-10 rounded-full">
+									{avatarUrl ? <img src={avatarUrl} alt="avatar" /> : <span class="inline-block w-10 h-10 bg-neutral rounded-full" />}
+								</div>
+							</label>
+							<ul tabindex="0" class="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
+								<li><span class="font-medium">{user.email}</span></li>
+								<li><a href="/generator">Generator</a></li>
+								<li>
+									<form method="POST" action="/api/logout" class="m-0 p-0">
+										<button type="submit" class="w-full text-left btn btn-ghost">Se déconnecter</button>
+									</form>
+								</li>
+							</ul>
+						</div>
+					) : (
+						<a href="/login" class="btn btn-primary">Se connecter</a>
+					)}
+				</div>
+			</nav>
+		</header>
+
 		<div class="h-full flex flex-col min-h-0">
 			<div class="flex-1 min-h-0">
 				<slot />
 			</div>
-		</div>
+		</div>        
 	</body>
 </html>

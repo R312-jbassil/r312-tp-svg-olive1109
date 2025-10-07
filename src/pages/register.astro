@@ -1,0 +1,62 @@
+---
+const locals = /** @type {any} */ (Astro.locals);
+// @ts-ignore
+if (locals.user) {
+  return Astro.redirect('/');
+}
+---
+<html lang="fr" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <title>Register</title>
+    <meta name="viewport" content="width=device-width" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.8.0/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="min-h-screen flex items-center justify-center bg-base-200">
+    <div class="card w-full max-w-md shadow-xl bg-base-100">
+      <div class="card-body">
+        <h1 class="card-title text-3xl mb-4 justify-center">Inscription</h1>
+        <form id="register-form" class="flex flex-col gap-4">
+          <input type="text" name="name" placeholder="Nom" class="input input-bordered" />
+          <input type="email" name="email" placeholder="Email" required class="input input-bordered" />
+          <input type="password" name="password" placeholder="Mot de passe" required class="input input-bordered" />
+          <button type="submit" class="btn btn-primary w-full">S'inscrire</button>
+        </form>
+        <p id="status" class="mt-4 text-center text-error"></p>
+      </div>
+    </div>
+
+    <script>
+      //@ts-nocheck
+      const form = document.getElementById('register-form');
+      const status = document.getElementById('status');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const fd = new FormData(form);
+        const payload = {
+          name: fd.get('name'),
+          email: fd.get('email'),
+          password: fd.get('password')
+        };
+
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include'
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          try { localStorage.setItem('user', JSON.stringify(data.user)); } catch(e){}
+          status.textContent = '✅ Inscription réussie !';
+          window.location.href = '/generator';
+        } else {
+          const err = await res.json().catch(()=>({}));
+          status.textContent = err.error || '❌ Erreur lors de l\'inscription';
+        }
+      });
+    </script>
+  </body>
+</html>
